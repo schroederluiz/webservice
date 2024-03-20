@@ -7,16 +7,20 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-@app.route('/consultar', methods=['POST'])
+@app.route('/token', methods=['POST'])
 def consultar():
     # Receber o JSON enviado pela aplicação
     dados_recebidos = request.json
+    print("Dados recebidos:", dados_recebidos)
 
     df = pd.read_excel("C:\\Users\\luiz.pereira\\Downloads\\planilha.xlsx")
     cnpj = int(dados_recebidos['cnpj'])  
     data_hora_cliente = (dados_recebidos['dataHoraISO'])
+    print("CNPJ recebido:", cnpj)
+    print("Data e hora ISO recebida:", data_hora_cliente)
 
     resultado = consulta_atividade(cnpj, df, data_hora_cliente)
+    print("Resultado da consulta:", resultado)
 
     if resultado.get('ativo', 0) == 1:
         resultado = json.dumps(resultado)
@@ -39,7 +43,8 @@ def consulta_atividade(cnpj, df, data_hora_cliente):
         # Verifica se a coluna 'dt_validade_token' está presente no DataFrame
         if 'dt_validade_token' in empresa.columns:
             # Converte a dataHoraISO para um objeto datetime
-            data_hora_cliente_dt = datetime.fromisoformat(data_hora_cliente)
+            data_hora_cliente_dt = datetime.strptime(data_hora_cliente, '%Y-%m-%dT%H:%M:%S.%fZ')
+            print("Data e hora cliente convertida:", data_hora_cliente_dt)
             
             # Converte a coluna 'dt_validade_token' para objetos datetime, se não estiverem vazias
             empresa.loc[:, 'dt_validade_token'] = pd.to_datetime(empresa['dt_validade_token'], errors='coerce')
